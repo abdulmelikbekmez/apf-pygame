@@ -1,5 +1,6 @@
 import pygame as pg
 from pygame import Vector2
+from pygame.draw import circle
 from pygame.time import Clock
 
 from agent import Agent
@@ -32,6 +33,10 @@ class App:
     def __draw(self):
         for agent in self.agents:
             agent.draw(self.screen)
+
+        circle(self.screen, (255, 255, 255), Agent.GOAL, 5)
+        for pos in Agent.obstacle:
+            circle(self.screen, (0, 0, 0), pos, 5)
 
     def __update(self):
         for agent in self.agents:

@@ -7,8 +7,19 @@ from pygame.surface import Surface
 class Agent:
     RADIUS = 5
     REP_RANGE = 100
-    K_REP = 500
+    K_REP = 5000000
+    K_ATT = 30.1
+    GOAL = Vector2(400, 400)
     agents: list[Agent] = list()
+    obstacle: list[Vector2] = [
+        Vector2(200, 100),
+        Vector2(200, 200),
+        Vector2(200, 300),
+        Vector2(200, 400),
+        Vector2(200, 500),
+        Vector2(300, 300),
+        Vector2(320, 322),
+    ]
     id = 0
 
     def __init__(self, pos: Vector2) -> None:
@@ -21,9 +32,13 @@ class Agent:
     def draw(self, surface: Surface):
         circle(surface, (255, 0, 0), self.pos, self.RADIUS)
 
+    def __reset(self):
+        self.vel = Vector2(0, 0)
+
     def update(self, dt: float):
         self.__update_vel(dt)
         self.__update_pos(dt)
+        self.__reset()
 
     def __update_vel(self, dt: float):
         self.__update_vel_repulsion(dt)
@@ -33,15 +48,22 @@ class Agent:
         self.pos += self.vel * dt  # m/s * s = m
 
     def __update_vel_attractive(self, dt: float):
-        ...
+        # TODO: cekme kisminda pid nin i (integral) kismi da uygulanabilir
+
+        dif = self.pos - self.GOAL  # p kismi
+        attr = -self.K_ATT * dif
+
+        self.vel += attr * dt
+        print(f"{self.id} attr => {attr}")
 
     def __update_vel_repulsion(self, dt: float):
         repulsion = Vector2(0, 0)
-        for agent in Agent.agents:
-            if agent.id == self.id:
-                continue
+        tmp = [
+            agent.pos for agent in Agent.agents if agent.id != self.id
+        ] + Agent.obstacle
+        for pos in tmp:
 
-            dif = self.pos - agent.pos
+            dif = self.pos - pos
 
             if dif.length() < Agent.REP_RANGE:
                 repulsion += (
@@ -51,5 +73,6 @@ class Agent:
                     * (dif.normalize())
                 )
 
+        print(f"{self.id} rep => {repulsion}")
         self.vel += repulsion * dt  # (m / s**2) * s = m/s
-        print(f"{self.id} vel => {self.vel}")
+        # print(f"{self.id} vel => {self.vel}")
